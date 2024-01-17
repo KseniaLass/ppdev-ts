@@ -3,6 +3,10 @@
         "noImplicitAny": true,
         "target": "ES5",
         "module": "ES2015",
-        "sourceMap": true
-    }
+        "sourceMap": true,
+        "allowSyntheticDefaultImports": true
+    },
+    "exclude": [
+        "node_modules"
+    ]
 }

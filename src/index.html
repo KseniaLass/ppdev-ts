@@ -46,15 +46,31 @@
     <!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
 
   </head>
-  <body>
-    <div class="cal">
-        <img src="./img/Без названия.jpg" alt="">
-     <form><br>
-      <p>Result : <span id="display"></span></p>
-      <input type="number" class="input" placeholder="Enter first number" name="firstnumber" value="1" min="1" min="9" /><br>
-      <input type="number" class="input" placeholder="Enter second number" name="secondnumber" value="1" min="1" min="9" /><br><br>
-      <button type="submit" class="button">Subtract</button>
-    </form>
+  <body itemscope itemtype="http://schema.org/WebPage" class="dark">
+    <h1>ppdev</h1>
+    <section>
+
+      <form action="#" class="form" id="js-form">
+        <div class="form__field">
+          <label for="poolAddress" class="form__label">poolAddress</label>
+          <input type="text" name="poolAddress" class="form__input" id="poolAddress" required value="0x7B73644935b8e68019aC6356c40661E1bc315860"/>
+        </div>
+        <div class="form__field">
+          <label for="startingBlock" class="form__label">startingBlock</label>
+          <input type="text" name="startingBlock" class="form__input" id="startingBlock" required value="12421093"/>
+        </div>
+        <div class="form__field">
+          <label for="blocks" class="form__label">blocks</label>
+          <input type="text" name="blocks" class="form__input" label="blocks" id="blocks" required value="123"/>
+        </div>
+        <input type="submit" class="form__submit">
+
+        <div class="form__error" id="js-form-error"></div>
+      </form>
+
+      <canvas class="chart" id="js-chart"></div>
+
+    </section>
   </div>
   <script type="text/javascript" src="../build/app.js"></script>
   </body>
