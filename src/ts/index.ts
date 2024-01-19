@@ -14,17 +14,43 @@ function init() {
     /** Data */
     const fullChartData: IChartRequest = null;
 
-    /** Send request for data */
+    /** Check get params */
+    const queryString = location.search.substring(1);
+    if (queryString.length) {
+        let URLParse = JSON.parse('{"' + decodeURI(queryString).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g,'":"') + '"}');
+        console.log(URLParse);
+        if (URLParse.poolAddress && URLParse.startingBlock && URLParse.blocks) {
+            generateChart({
+                poolAddress: URLParse.poolAddress,
+                startingBlock: URLParse.startingBlock,
+                blocks: URLParse.blocks
+            })
+        }
+    }
+    
+
+    /** Submit form */
     $form.addEventListener("submit", async (event: SubmitEvent) => {
         event.preventDefault();        
         try {
             const target = <HTMLFormElement> event.currentTarget;        
             const formData = new FormData(target);
-            const response: IChartResponse = await requestChartData({
+            generateChart({
                 poolAddress: formData.get('poolAddress') as string,
                 startingBlock: formData.get('startingBlock') as string,
                 blocks: formData.get('blocks') as string
-            });
+            });            
+        } catch (error) {
+            console.error('err', error);
+            $formError.innerText = error.error;
+        }
+    });
+
+
+
+    async function generateChart(query: IChartRequest): Promise<void> {
+        try {
+            const response: IChartResponse = await requestChartData(query);
             
             const data = formatChartData(response);
             $poolInfo.innerHTML = formatJSONtoHTML(response.poolInfo); 
@@ -78,84 +104,82 @@ function init() {
             
             const chart = new ApexCharts($chart, chartOptions);
             chart.render();
-            
         } catch (error) {
-            console.error('err', error);
-            $formError.innerText = error.error;
+            
         }
-  });
-}
-
-async function requestChartData(query: IChartRequest): Promise<IChartResponse>  {
-  const baseUrl = `http://g.cybara.io/api`;
-  const search = `?poolAddress=${query.poolAddress}&startingBlock=${query.startingBlock}&blocks=${query.blocks}`;
-  const response = await fetch(`${baseUrl}${search}`, {
-      method: 'GET',
-  });
-  const json = await response.json();
-  if (json.success) {
-      return json
-  } else {
-      throw json
-  }
-}
-
-function formatChartData(data: IChartResponse): ICandle[] {
-  let formatData: ICandle[] = [];
-  let loopLength: number = data.blocks[data.blocks.length - 1].blockNumber - data.blocks[0].blockNumber;
-  let lastBlockNumber: number = data.blocks[0].blockNumber - 1;
-  let lastOpen: string = data.poolInfo.startingPrice;
-  let lastHigh: string = '';
-  let lastLow: string = '';
-  let lastClose: string = data.poolInfo.startingPrice;
-
-  let i = 0;
-  while(formatData.length - 1 !== loopLength) {
-    lastBlockNumber++;
-    let prices: IPrice[] = [];
-    if (data.blocks[i].blockNumber === lastBlockNumber) {
-        let high: number = 0,
-            low: number = Infinity;
-            lastOpen = lastClose;
-        data.blocks[i].prices.forEach((price: IPrice, k: number): void => {
-            if (+price.priceAfter > high) {
-                lastHigh = price.priceAfter
-                high = +price.priceAfter;
-            }
-            if (+price.priceAfter < low) {
-                lastLow = price.priceAfter
-                low = +price.priceAfter;
-            }
-            if (k === data.blocks[i].prices.length - 1) {
-                lastClose = price.priceAfter;
-            }
-            prices.push({
-                txURL: `https://etherscan.io/tx/${price.txHash}`,
-                ...price
-            })
-        });
-        i++;
     }
     
-    formatData.push({
-        x: lastBlockNumber + '',
-        y: [lastOpen, lastHigh, lastLow, lastHigh],
-        prices
-    });
-  }
-  return formatData;
-}
-
-function formatJSONtoHTML(json: any): string {
-    let html = '';
-    for (let key in json) {
-        if (key === 'txURL') {
-            html += `<strong>${key} </strong><a href=${json[key]} target="_blank">${json[key]}</a></br>`
-        } else {
-            html += `<strong>${key} </strong><span>${json[key]}</span></br>`;
-        }
+    async function requestChartData(query: IChartRequest): Promise<IChartResponse>  {
+      const baseUrl = `http://g.cybara.io/api`;
+      const search = `?poolAddress=${query.poolAddress}&startingBlock=${query.startingBlock}&blocks=${query.blocks}`;
+      const response = await fetch(`${baseUrl}${search}`, {
+          method: 'GET',
+      });
+      const json = await response.json();
+      if (json.success) {
+          return json
+      } else {
+          throw json
+      }
     }
-    return html;
+    
+    function formatChartData(data: IChartResponse): ICandle[] {
+      let formatData: ICandle[] = [];
+      let loopLength: number = data.blocks[data.blocks.length - 1].blockNumber - data.blocks[0].blockNumber;
+      let lastBlockNumber: number = data.blocks[0].blockNumber - 1;
+      let lastOpen: string = data.poolInfo.startingPrice;
+      let lastHigh: string = '';
+      let lastLow: string = '';
+      let lastClose: string = data.poolInfo.startingPrice;
+    
+      let i = 0;
+      while(formatData.length - 1 !== loopLength) {
+        lastBlockNumber++;
+        let prices: IPrice[] = [];
+        if (data.blocks[i].blockNumber === lastBlockNumber) {
+            let high: number = 0,
+                low: number = Infinity;
+                lastOpen = lastClose;
+            data.blocks[i].prices.forEach((price: IPrice, k: number): void => {
+                if (+price.priceAfter > high) {
+                    lastHigh = price.priceAfter
+                    high = +price.priceAfter;
+                }
+                if (+price.priceAfter < low) {
+                    lastLow = price.priceAfter
+                    low = +price.priceAfter;
+                }
+                if (k === data.blocks[i].prices.length - 1) {
+                    lastClose = price.priceAfter;
+                }
+                prices.push({
+                    txURL: `https://etherscan.io/tx/${price.txHash}`,
+                    ...price
+                })
+            });
+            i++;
+        }
+        
+        formatData.push({
+            x: lastBlockNumber + '',
+            y: [lastOpen, lastHigh, lastLow, lastHigh],
+            prices
+        });
+      }
+      return formatData;
+    }
+    
+    function formatJSONtoHTML(json: any): string {
+        let html = '';
+        for (let key in json) {
+            if (key === 'txURL') {
+                html += `<strong>${key} </strong><a href=${json[key]} target="_blank">${json[key]}</a></br>`
+            } else {
+                html += `<strong>${key} </strong><span>${json[key]}</span></br>`;
+            }
+        }
+        return html;
+    }
 }
 
 init();
