@@ -14,6 +14,7 @@ interface IPrice {
     priceAfter: string;
     liquidity0: string;
     liquidity1: string;
+    txURL?: string;
 }
 interface IBlock {
     blockNumber: number;
@@ -23,7 +24,8 @@ interface IBlock {
 // y: [open, high, low, close]
 interface ICandle {
     x: string,
-    y: [string, string, string, string]
+    y: [string, string, string, string],
+    prices: IPrice[]
 }
 
 interface IChartResponse {
@@ -39,4 +41,4 @@ interface IChartRequest {
     blocks: string;
 }
 
-export {IChartResponse, IChartRequest, ICandle, IPrice}
+export {IChartResponse, IChartRequest, ICandle, IPrice, IBlock}

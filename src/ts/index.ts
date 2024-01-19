@@ -1,13 +1,18 @@
-import { IChartRequest, IChartResponse, ICandle, IPrice } from "./dto";
+import { IChartRequest, IChartResponse, ICandle, IPrice, IBlock } from "./dto";
 import ApexCharts from 'apexcharts'
 require('../css/app.scss');
 
 function init() { 
 
-  /** Elements */
+    /** Elements */
     const $form = document.getElementById("js-form");
     const $formError = document.getElementById("js-form-error");
     const $chart = document.getElementById('js-chart');
+    const $poolInfo = document.getElementById('js-poolInfo');
+    const $blockInfo = document.getElementById('js-blockInfo');
+
+    /** Data */
+    const fullChartData: IChartRequest = null;
 
     /** Send request for data */
     $form.addEventListener("submit", async (event: SubmitEvent) => {
@@ -15,13 +20,14 @@ function init() {
         try {
             const target = <HTMLFormElement> event.currentTarget;        
             const formData = new FormData(target);
-            const response = await requestChartData({
+            const response: IChartResponse = await requestChartData({
                 poolAddress: formData.get('poolAddress') as string,
                 startingBlock: formData.get('startingBlock') as string,
                 blocks: formData.get('blocks') as string
             });
             
-            const data = formatChartData(response);            
+            const data = formatChartData(response);
+            $poolInfo.innerHTML = formatJSONtoHTML(response.poolInfo); 
             
             const chartOptions = {
                 series: [
@@ -29,10 +35,22 @@ function init() {
                 ],
                 chart: {
                     type: 'candlestick',
-                    height: 350
+                    height: 500,
+                    events: {
+                        //@ts-ignore
+                        markerClick: function(_: any, {w}, { seriesIndex, dataPointIndex}) {
+                            $blockInfo.innerHTML = '';
+                            let candle = w.config.series[seriesIndex].data[dataPointIndex];
+                            let blocksHTML = '';
+                            candle.prices.forEach((val: IPrice) => {
+                                blocksHTML += `<div class="blockInfo__item">${formatJSONtoHTML(val)}</div>`;
+                            })
+                            $blockInfo.innerHTML = blocksHTML;                          
+                        }
+                      }
                 },
                 title: {
-                    text: 'CandleStick Chart',
+                    text: 'PP Chart',
                     align: 'left'
                 },
                 xaxis: {
@@ -94,6 +112,7 @@ function formatChartData(data: IChartResponse): ICandle[] {
   let i = 0;
   while(formatData.length - 1 !== loopLength) {
     lastBlockNumber++;
+    let prices: IPrice[] = [];
     if (data.blocks[i].blockNumber === lastBlockNumber) {
         let high: number = 0,
             low: number = Infinity;
@@ -110,13 +129,33 @@ function formatChartData(data: IChartResponse): ICandle[] {
             if (k === data.blocks[i].prices.length - 1) {
                 lastClose = price.priceAfter;
             }
+            prices.push({
+                txURL: `https://etherscan.io/tx/${price.txHash}`,
+                ...price
+            })
         });
         i++;
     }
     
-    formatData.push({x: lastBlockNumber + '', y: [lastOpen, lastHigh, lastLow, lastHigh]});
+    formatData.push({
+        x: lastBlockNumber + '',
+        y: [lastOpen, lastHigh, lastLow, lastHigh],
+        prices
+    });
   }
   return formatData;
+}
+
+function formatJSONtoHTML(json: any): string {
+    let html = '';
+    for (let key in json) {
+        if (key === 'txURL') {
+            html += `<strong>${key} </strong><a href=${json[key]} target="_blank">${json[key]}</a></br>`
+        } else {
+            html += `<strong>${key} </strong><span>${json[key]}</span></br>`;
+        }
+    }
+    return html;
 }
 
 init();
