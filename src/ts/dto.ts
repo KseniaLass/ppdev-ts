@@ -20,11 +20,8 @@ interface IBlock {
     prices: IPrice[]
 }
 interface ICandle {
-    x: number;
-    o: number;
-    h: number;
-    l: number;
-    c: number;
+    x: string,
+    y: [string, string, string, string]
 }
 
 interface IChartResponse {

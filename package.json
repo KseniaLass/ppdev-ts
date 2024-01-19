@@ -35,6 +35,6 @@
     "webpack-dev-server": "^4.15.1"
   },
   "dependencies": {
-    "chart.js": "^4.4.1"
+    "apexcharts": "^3.45.1"
   }
 }

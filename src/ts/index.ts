@@ -1,16 +1,13 @@
 import { IChartRequest, IChartResponse, ICandle } from "./dto";
-// import { Chart } from "chart.js/auto";
+import ApexCharts from 'apexcharts'
 require('../css/app.scss');
 
 function init() { 
+
   /** Elements */
     const $form = document.getElementById("js-form");
     const $formError = document.getElementById("js-form-error");
-    const $chart = <HTMLCanvasElement> document.getElementById('js-chart');
-    const ctx = $chart.getContext('2d');
-
-    ctx.canvas.width = 1000;
-    ctx.canvas.height = 250;
+    const $chart = document.getElementById('js-chart');
 
     /** Send request for data */
     $form.addEventListener("submit", async (event: SubmitEvent) => {
@@ -24,16 +21,33 @@ function init() {
                 blocks: formData.get('blocks') as string
             });
             
-            console.log(JSON.stringify(generateChart(response)));
-            // let chart = new Chart(ctx, {
-            //     type: 'candlestick',
-            //     data: {
-            //         datasets: [{
-            //             label: 'CHRT - Chart.js Corporation',
-            //             data: generateChart(response)
-            //         }]
-            //     }
-            // });
+            const data = formatChartData(response);
+            
+            const chartOptions = {
+                series: [
+                    { data }
+                ],
+                chart: {
+                    type: 'candlestick',
+                    height: 350
+                },
+                title: {
+                    text: 'CandleStick Chart',
+                    align: 'left'
+                },
+                xaxis: {
+                    type: 'category'
+                },
+                yaxis: {
+                    tooltip: {
+                        enabled: true
+                    }
+                }
+            }
+            
+            const chart = new ApexCharts($chart, chartOptions);
+            chart.render();
+            
         } catch (error) {
             console.error('err', error);
             $formError.innerText = error.error;
@@ -55,37 +69,39 @@ async function requestChartData(query: IChartRequest): Promise<IChartResponse>  
   }
 }
 
-function generateChart(data: IChartResponse): ICandle[] {
+function formatChartData(data: IChartResponse): any {
   let formatData = [];
-  let lastBlockNumber = data.blocks[0].blockNumber;
+  let loopLength = data.blocks[data.blocks.length - 1].blockNumber - data.blocks[0].blockNumber;
+  let lastBlockNumber = data.blocks[0].blockNumber - 1;
   let lastOpen = +data.poolInfo.startingPrice;
   let lastHigh = 0;
   let lastLow = 0;
   let lastClose = 0;
 
-  for (let i = 0; i < data.blocks.length - 1; i++) {
-      let x = lastBlockNumber,
-          o = lastOpen,
-          h = lastHigh,
-          l = lastLow,
-          c = lastClose;
-      if (lastBlockNumber === data.blocks[i].blockNumber) {
-          h = 0;
-          l = Infinity;
-          data.blocks[i].prices.forEach((price, k) => {
-              if (+price.priceAfter > h) h = +price.priceAfter;
-              if (+price.priceAfter < l) l = +price.priceAfter;
-              if (k === data.blocks[i].prices.length - 1) {
-                  c = +price.priceAfter;
-              }
-          });
-      }
-      formatData.push({x, o, h, l, c});
-      lastOpen = c;
-      lastHigh = h;
-      lastLow = l;
-      lastClose = c;
-      lastBlockNumber++;
+  let i = 0;
+  while(formatData.length - 1 !== loopLength) {
+    lastBlockNumber++;
+    let open = lastOpen,
+        high = lastHigh,
+        low = lastLow,
+        close = lastClose;
+    if (data.blocks[i].blockNumber === lastBlockNumber) {
+        high = 0;
+        low = Infinity;
+        data.blocks[i].prices.forEach((price, k) => {
+            if (+price.priceAfter > high) high = +price.priceAfter;
+            if (+price.priceAfter < low) low = +price.priceAfter;
+            if (k === data.blocks[i].prices.length - 1) {
+                close = +price.priceAfter;
+            }
+        });
+        i++;
+    }
+    formatData.push({x: lastBlockNumber, y: [open, high, low, close]});
+      lastOpen = close;
+      lastHigh = high;
+      lastLow = low;
+      lastClose = close;
   }
   return formatData;
   
