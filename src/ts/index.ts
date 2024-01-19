@@ -1,4 +1,4 @@
-import { IChartRequest, IChartResponse, ICandle } from "./dto";
+import { IChartRequest, IChartResponse, ICandle, IPrice } from "./dto";
 import ApexCharts from 'apexcharts'
 require('../css/app.scss');
 
@@ -21,7 +21,7 @@ function init() {
                 blocks: formData.get('blocks') as string
             });
             
-            const data = formatChartData(response);
+            const data = formatChartData(response);            
             
             const chartOptions = {
                 series: [
@@ -42,6 +42,19 @@ function init() {
                     tooltip: {
                         enabled: true
                     }
+                },
+                tooltip: {
+                    //@ts-ignore
+                    custom: function({series, seriesIndex, dataPointIndex, w}) {
+                        let block = w.config.series[seriesIndex].data[dataPointIndex];
+                        
+                        return '<div class="arrow_box">' +
+                          '<strong>Open:</strong><span>' + block.y[0] + '</span></br>' +
+                          '<strong>High:</strong><span>' + block.y[1] + '</span></br>' +
+                          '<strong>Low:</strong><span>' + block.y[2] + '</span></br>' +
+                          '<strong>Close:</strong><span>' + block.y[3] + '</span></br>' +
+                          '</div>'
+                      }
                 }
             }
             
@@ -69,42 +82,41 @@ async function requestChartData(query: IChartRequest): Promise<IChartResponse>  
   }
 }
 
-function formatChartData(data: IChartResponse): any {
-  let formatData = [];
-  let loopLength = data.blocks[data.blocks.length - 1].blockNumber - data.blocks[0].blockNumber;
-  let lastBlockNumber = data.blocks[0].blockNumber - 1;
-  let lastOpen = +data.poolInfo.startingPrice;
-  let lastHigh = 0;
-  let lastLow = 0;
-  let lastClose = 0;
+function formatChartData(data: IChartResponse): ICandle[] {
+  let formatData: ICandle[] = [];
+  let loopLength: number = data.blocks[data.blocks.length - 1].blockNumber - data.blocks[0].blockNumber;
+  let lastBlockNumber: number = data.blocks[0].blockNumber - 1;
+  let lastOpen: string = data.poolInfo.startingPrice;
+  let lastHigh: string = '';
+  let lastLow: string = '';
+  let lastClose: string = data.poolInfo.startingPrice;
 
   let i = 0;
   while(formatData.length - 1 !== loopLength) {
     lastBlockNumber++;
-    let open = lastOpen,
-        high = lastHigh,
-        low = lastLow,
-        close = lastClose;
     if (data.blocks[i].blockNumber === lastBlockNumber) {
-        high = 0;
-        low = Infinity;
-        data.blocks[i].prices.forEach((price, k) => {
-            if (+price.priceAfter > high) high = +price.priceAfter;
-            if (+price.priceAfter < low) low = +price.priceAfter;
+        let high: number = 0,
+            low: number = Infinity;
+            lastOpen = lastClose;
+        data.blocks[i].prices.forEach((price: IPrice, k: number): void => {
+            if (+price.priceAfter > high) {
+                lastHigh = price.priceAfter
+                high = +price.priceAfter;
+            }
+            if (+price.priceAfter < low) {
+                lastLow = price.priceAfter
+                low = +price.priceAfter;
+            }
             if (k === data.blocks[i].prices.length - 1) {
-                close = +price.priceAfter;
+                lastClose = price.priceAfter;
             }
         });
         i++;
     }
-    formatData.push({x: lastBlockNumber, y: [open, high, low, close]});
-      lastOpen = close;
-      lastHigh = high;
-      lastLow = low;
-      lastClose = close;
+    
+    formatData.push({x: lastBlockNumber + '', y: [lastOpen, lastHigh, lastLow, lastHigh]});
   }
   return formatData;
-  
 }
 
 init();

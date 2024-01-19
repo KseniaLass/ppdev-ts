@@ -19,6 +19,8 @@ interface IBlock {
     blockNumber: number;
     prices: IPrice[]
 }
+
+// y: [open, high, low, close]
 interface ICandle {
     x: string,
     y: [string, string, string, string]
@@ -37,4 +39,4 @@ interface IChartRequest {
     blocks: string;
 }
 
-export {IChartResponse, IChartRequest, ICandle}
+export {IChartResponse, IChartRequest, ICandle, IPrice}
