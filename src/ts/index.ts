@@ -28,6 +28,57 @@ function init() {
             setValesToForm(query);
         }
     }
+
+    /** Render Chart */
+    const chartOptions = {
+        series: [
+            {}
+        ],
+        chart: {
+            type: 'candlestick',
+            height: 500,
+            events: {
+                //@ts-ignore
+                markerClick: function(_: any, {w}, { seriesIndex, dataPointIndex}) {
+                    $blockInfo.innerHTML = '';
+                    let candle = w.config.series[seriesIndex].data[dataPointIndex];
+                    let blocksHTML = '';
+                    candle.prices.forEach((val: IPrice) => {
+                        blocksHTML += `<div class="blockInfo__item">${formatJSONtoHTML(val)}</div>`;
+                    })
+                    $blockInfo.innerHTML = blocksHTML;                          
+                }
+              }
+        },
+        title: {
+            text: 'PP Chart',
+            align: 'left'
+        },
+        xaxis: {
+            type: 'category'
+        },
+        yaxis: {
+            tooltip: {
+                enabled: true
+            }
+        },
+        tooltip: {
+            //@ts-ignore
+            custom: function({series, seriesIndex, dataPointIndex, w}) {
+                let block = w.config.series[seriesIndex].data[dataPointIndex];
+                
+                return '<div class="arrow_box">' +
+                  '<strong>Open:</strong><span>' + block.y[0] + '</span></br>' +
+                  '<strong>High:</strong><span>' + block.y[1] + '</span></br>' +
+                  '<strong>Low:</strong><span>' + block.y[2] + '</span></br>' +
+                  '<strong>Close:</strong><span>' + block.y[3] + '</span></br>' +
+                  '</div>'
+              }
+        }
+    }
+    
+    const chart = new ApexCharts($chart, chartOptions);
+    chart.render();
     
 
     /** Submit form */
@@ -54,65 +105,18 @@ function init() {
     }
 
 
-
     async function generateChart(query: IChartRequest): Promise<void> {
         try {
             const response: IChartResponse = await requestChartData(query);
-            
             const data = formatChartData(response);
             $poolInfo.innerHTML = formatJSONtoHTML(response.poolInfo); 
-            
-            const chartOptions = {
-                series: [
-                    { data }
-                ],
-                chart: {
-                    type: 'candlestick',
-                    height: 500,
-                    events: {
-                        //@ts-ignore
-                        markerClick: function(_: any, {w}, { seriesIndex, dataPointIndex}) {
-                            $blockInfo.innerHTML = '';
-                            let candle = w.config.series[seriesIndex].data[dataPointIndex];
-                            let blocksHTML = '';
-                            candle.prices.forEach((val: IPrice) => {
-                                blocksHTML += `<div class="blockInfo__item">${formatJSONtoHTML(val)}</div>`;
-                            })
-                            $blockInfo.innerHTML = blocksHTML;                          
-                        }
-                      }
-                },
-                title: {
-                    text: 'PP Chart',
-                    align: 'left'
-                },
-                xaxis: {
-                    type: 'category'
-                },
-                yaxis: {
-                    tooltip: {
-                        enabled: true
-                    }
-                },
-                tooltip: {
-                    //@ts-ignore
-                    custom: function({series, seriesIndex, dataPointIndex, w}) {
-                        let block = w.config.series[seriesIndex].data[dataPointIndex];
-                        
-                        return '<div class="arrow_box">' +
-                          '<strong>Open:</strong><span>' + block.y[0] + '</span></br>' +
-                          '<strong>High:</strong><span>' + block.y[1] + '</span></br>' +
-                          '<strong>Low:</strong><span>' + block.y[2] + '</span></br>' +
-                          '<strong>Close:</strong><span>' + block.y[3] + '</span></br>' +
-                          '</div>'
-                      }
-                }
-            }
-            
-            const chart = new ApexCharts($chart, chartOptions);
-            chart.render();
+            $chart.style.display = "block"; 
+            chart.updateSeries([{
+                data
+            }])
+        
         } catch (error) {
-            
+            console.error(error);
         }
     }
     
