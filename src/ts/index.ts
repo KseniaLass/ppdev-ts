@@ -6,25 +6,26 @@ function init() {
 
     /** Elements */
     const $form = document.getElementById("js-form");
+    const $poolAddress = <HTMLInputElement> document.getElementById("js-poolAddress");
+    const $startingBlock = <HTMLInputElement> document.getElementById("js-startingBlock");
+    const $blocks = <HTMLInputElement> document.getElementById("js-blocks");
     const $formError = document.getElementById("js-form-error");
     const $chart = document.getElementById('js-chart');
     const $poolInfo = document.getElementById('js-poolInfo');
     const $blockInfo = document.getElementById('js-blockInfo');
 
-    /** Data */
-    const fullChartData: IChartRequest = null;
-
     /** Check get params */
     const queryString = location.search.substring(1);
     if (queryString.length) {
         let URLParse = JSON.parse('{"' + decodeURI(queryString).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g,'":"') + '"}');
-        console.log(URLParse);
         if (URLParse.poolAddress && URLParse.startingBlock && URLParse.blocks) {
-            generateChart({
+            let query = {
                 poolAddress: URLParse.poolAddress,
                 startingBlock: URLParse.startingBlock,
                 blocks: URLParse.blocks
-            })
+            };
+            generateChart(query);
+            setValesToForm(query);
         }
     }
     
@@ -45,6 +46,12 @@ function init() {
             $formError.innerText = error.error;
         }
     });
+
+    function setValesToForm(query: IChartRequest): void {
+        $poolAddress.value = query.poolAddress;
+        $startingBlock.value = query.startingBlock;
+        $blocks.value = query.blocks;
+    }
 
 
 
