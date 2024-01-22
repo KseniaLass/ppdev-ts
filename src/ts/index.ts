@@ -161,7 +161,6 @@ function init() {
                     lastClose = price.priceAfter;
                 }
                 prices.push({
-                    txURL: `https://etherscan.io/tx/${price.txHash}`,
                     ...price
                 })
             });
@@ -180,10 +179,24 @@ function init() {
     function formatJSONtoHTML(json: any): string {
         let html = '';
         for (let key in json) {
-            if (key === 'txURL') {
-                html += `<strong>${key} </strong><a href=${json[key]} target="_blank">${json[key]}</a></br>`
+            let link = '';
+            switch (key) {
+                case 'txHash':
+                    link = 'https://etherscan.io/tx/';
+                    break;
+                case 'poolAddress':
+                    link = 'https://etherscan.io/address/';
+                    break;
+                case 'token0':
+                case 'token1':
+                    link = 'https://etherscan.io/token/';
+                    break;
+            }
+            html += `<strong>${key}: </strong>`
+            if (link.length) {
+                html += `<a href=${link}${json[key]} target="_blank">${link}${json[key]}</a></br>`
             } else {
-                html += `<strong>${key} </strong><span>${json[key]}</span></br>`;
+                html += `<span>${json[key]}</span></br>`;
             }
         }
         return html;
