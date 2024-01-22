@@ -1,32 +1,39 @@
 @use 'var';
+@use 'base';
 
 body * {
     font-family: Roboto,sans-serif;
 }
 
-/*
-    Form
-*/
+a {
+    color: var.$link;
+    &:hover {
+        color: var.$linkhover;
+    }
+}
 
 .form {
-    width: 600px;
-    margin: 0 auto;
     &.disabled {
         opacity: 0.5;
         pointer-events: none;
     }
     &__field {
         padding: 5px;
+        display: inline-block;
+        &:first-child {
+            input {
+                min-width: 420px;
+            }
+        }
+
     }
     &__input {
         height: auto;
-        width: 430px;
         padding: 10px;
         font-size: 16px;
     }
     &__label {
         display: inline-block;
-        width: 100px;
         margin-right: 10px;
     }
     &__submit {
@@ -45,6 +52,42 @@ body * {
 .loader {
     text-align: center;
     margin-top: 50px;
+}
+
+.poolInfo {
+    border: 1px solid;
+    padding: 10px;
+    border-radius: 2px;
+}
+
+.blockInfo {
+    &__item {
+        border: 1px solid;
+        padding: 10px;
+        border-radius: 2px;
+        margin-bottom: 15px;
+    }
+}
+
+.hide {
+    display: none;
+}
+
+.chart {
+    margin: 20px -10px;
+    * {
+        font-family: Roboto,sans-serif !important;
+    }
+    text {
+        fill: var.$color-dark !important;
+    }
+    &__tooltip {
+        padding: 10px;
+        color: var.$bg-dark;
+        strong {
+            margin-right: 5px;;
+        }
+    }
 }
 
 /*

@@ -68,7 +68,7 @@ function init() {
             custom: function({series, seriesIndex, dataPointIndex, w}) {
                 let block = w.config.series[seriesIndex].data[dataPointIndex];
                 
-                return '<div class="arrow_box">' +
+                return '<div class="chart__tooltip">' +
                   '<strong>Open:</strong><span>' + block.y[0] + '</span></br>' +
                   '<strong>High:</strong><span>' + block.y[1] + '</span></br>' +
                   '<strong>Low:</strong><span>' + block.y[2] + '</span></br>' +
@@ -84,19 +84,14 @@ function init() {
 
     /** Submit form */
     $form.addEventListener("submit", async (event: SubmitEvent) => {
-        event.preventDefault();        
-        try {
-            const target = <HTMLFormElement> event.currentTarget;        
-            const formData = new FormData(target);
-            generateChart({
-                poolAddress: formData.get('poolAddress') as string,
-                startingBlock: formData.get('startingBlock') as string,
-                blocks: formData.get('blocks') as string
-            });            
-        } catch (error) {
-            console.error('err', error);
-            $formError.innerText = error.error;
-        }
+        event.preventDefault();   
+        const target = <HTMLFormElement> event.currentTarget;        
+        const formData = new FormData(target);
+        generateChart({
+            poolAddress: formData.get('poolAddress') as string,
+            startingBlock: formData.get('startingBlock') as string,
+            blocks: formData.get('blocks') as string
+        }); 
     });
 
     function setValesToForm(query: IChartRequest): void {
@@ -117,7 +112,7 @@ function init() {
             }])
         
         } catch (error) {
-            console.error(error);
+            $formError.innerText = error.error;
         }
     }
     async function requestChartData(query: IChartRequest): Promise<IChartResponse>  {
@@ -195,13 +190,14 @@ function init() {
     }
 
     function beforeRequest(): void {
-        $loader.style.display = 'block';
+        $loader.classList.remove('hide');
         $form.classList.add('disabled');
     }
 
     function afterRequest(): void {
-        $loader.style.display = 'none';
+        $loader.classList.add('hide');
         $form.classList.remove('disabled');
+        $poolInfo.classList.remove('hide');
     }
 }
 
