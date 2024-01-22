@@ -13,6 +13,7 @@ function init() {
     const $chart = document.getElementById('js-chart');
     const $poolInfo = document.getElementById('js-poolInfo');
     const $blockInfo = document.getElementById('js-blockInfo');
+    const $loader = document.getElementById('js-loader');
 
     /** Check get params */
     const queryString = location.search.substring(1);
@@ -119,19 +120,20 @@ function init() {
             console.error(error);
         }
     }
-    
     async function requestChartData(query: IChartRequest): Promise<IChartResponse>  {
-      const baseUrl = `http://g.cybara.io/api`;
-      const search = `?poolAddress=${query.poolAddress}&startingBlock=${query.startingBlock}&blocks=${query.blocks}`;
-      const response = await fetch(`${baseUrl}${search}`, {
-          method: 'GET',
-      });
-      const json = await response.json();
-      if (json.success) {
-          return json
-      } else {
-          throw json
-      }
+        beforeRequest();
+        const baseUrl = `http://g.cybara.io/api`;
+        const search = `?poolAddress=${query.poolAddress}&startingBlock=${query.startingBlock}&blocks=${query.blocks}`;
+        const response = await fetch(`${baseUrl}${search}`, {
+            method: 'GET',
+        });
+        const json = await response.json();
+        afterRequest();
+        if (json.success) {
+            return json
+        } else {
+            throw json
+        }
     }
     
     function formatChartData(data: IChartResponse): ICandle[] {
@@ -190,6 +192,16 @@ function init() {
             }
         }
         return html;
+    }
+
+    function beforeRequest(): void {
+        $loader.style.display = 'block';
+        $form.classList.add('disabled');
+    }
+
+    function afterRequest(): void {
+        $loader.style.display = 'none';
+        $form.classList.remove('disabled');
     }
 }
 
