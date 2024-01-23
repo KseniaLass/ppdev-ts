@@ -102,7 +102,7 @@ function init() {
     }
 
     function setValuesToURL(query: IChartRequest): void {
-        const url = new URL(window.location.origin);
+        const url = new URL(`${window.location.origin}${window.location.pathname}`);
         url.searchParams.set('poolAddress', query.poolAddress);
         url.searchParams.set('startingBlock', query.startingBlock);
         url.searchParams.set('blocks', query.blocks);
