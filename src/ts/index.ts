@@ -87,11 +87,12 @@ function init() {
         event.preventDefault();   
         const target = <HTMLFormElement> event.currentTarget;        
         const formData = new FormData(target);
-        generateChart({
+        const query = {
             poolAddress: formData.get('poolAddress') as string,
             startingBlock: formData.get('startingBlock') as string,
             blocks: formData.get('blocks') as string
-        }); 
+        }
+        generateChart(query); 
     });
 
     function setValesToForm(query: IChartRequest): void {
@@ -100,6 +101,13 @@ function init() {
         $blocks.value = query.blocks;
     }
 
+    function setValuesToURL(query: IChartRequest): void {
+        const url = new URL(window.location.origin);
+        url.searchParams.set('poolAddress', query.poolAddress);
+        url.searchParams.set('startingBlock', query.startingBlock);
+        url.searchParams.set('blocks', query.blocks);
+        history.pushState({}, "", url);
+    }
 
     async function generateChart(query: IChartRequest): Promise<void> {
         try {
@@ -109,8 +117,8 @@ function init() {
             $chart.style.display = "block"; 
             chart.updateSeries([{
                 data
-            }])
-        
+            }]);
+            setValuesToURL(query);
         } catch (error) {
             $formError.innerText = error.error;
         }
