@@ -1,4 +1,4 @@
-import { IChartRequest, IChartResponse, ICandle, IPrice, IBlock } from "./dto";
+import { IChartRequest, IChartResponse, ICandle, IPrice, IBlock, IValidationError } from "./dto";
 import ApexCharts from 'apexcharts'
 require('../css/app.scss');
 
@@ -116,6 +116,10 @@ function init() {
         }
     }
     async function requestChartData(query: IChartRequest): Promise<IChartResponse>  {
+        let validation = validateRequest(query);
+        if (!validation.success) {
+            throw validation;
+        }
         beforeRequest();
         const baseUrl = `http://g.cybara.io/api`;
         const search = `?poolAddress=${query.poolAddress}&startingBlock=${query.startingBlock}&blocks=${query.blocks}`;
@@ -204,6 +208,7 @@ function init() {
 
     function beforeRequest(): void {
         $loader.classList.remove('hide');
+        $formError.classList.add('hide');
         $form.classList.add('disabled');
     }
 
@@ -211,6 +216,30 @@ function init() {
         $loader.classList.add('hide');
         $form.classList.remove('disabled');
         $poolInfo.classList.remove('hide');
+    }
+
+    function validateRequest(query: IChartRequest): IValidationError {
+        if (!/^0x\w{40}/.test(query.poolAddress)) {
+            return {
+                success: false,
+                error: 'Invalid value poolAddress. Only hash string allowed: starts from 0x and length 42.'
+            }
+        } else if (!/\d/gm.test(query.startingBlock)) {
+            return {
+                success: false,
+                error: 'Invalid value startingBlock. Only numbers allowed.'
+            }
+        } else if (!/\d/gm.test(query.blocks)) {
+            return {
+                success: false,
+                error: 'Invalid value blocks. Only numbers allowed.'
+            }
+        } else {
+            return {
+                success: true,
+                error: ''
+            }
+        }
     }
 }
 

@@ -41,4 +41,9 @@ interface IChartRequest {
     blocks: string;
 }
 
-export {IChartResponse, IChartRequest, ICandle, IPrice, IBlock}
+interface IValidationError {
+    success: boolean;
+    error: string;
+}
+
+export {IChartResponse, IChartRequest, ICandle, IPrice, IBlock, IValidationError}
