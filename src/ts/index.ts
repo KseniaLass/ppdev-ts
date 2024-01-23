@@ -177,13 +177,18 @@ function init() {
                 })
             });
             i++;
+            formatData.push({
+                x: lastBlockNumber + '',
+                y: [lastOpen, lastHigh, lastLow, lastClose],
+                prices
+            });
+        } else {
+            formatData.push({
+                x: lastBlockNumber + '',
+                y: [lastClose, lastClose, lastClose, lastClose],
+                prices
+            });
         }
-        
-        formatData.push({
-            x: lastBlockNumber + '',
-            y: [lastOpen, lastHigh, lastLow, lastHigh],
-            prices
-        });
       }
       return formatData;
     }
