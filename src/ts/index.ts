@@ -287,11 +287,10 @@ function init() {
                     link = 'https://etherscan.io/token/';
                     break;
             }
-            html += `<strong>${key}: </strong>`
             if (link.length) {
-                html += `<a href=${link}${json[key]} target="_blank">${link}${json[key]}</a></br>`
+                html += `<a href=${link}${json[key]} target="_blank"><strong>${key}</strong></a></br>`
             } else {
-                html += `<span>${json[key]}</span></br>`;
+                html += `<strong>${key}: </strong><span>${json[key]}</span></br>`;
             }
         }
         return html;

@@ -59,6 +59,7 @@ a {
     border: 1px solid;
     padding: 10px;
     border-radius: 2px;
+    margin-bottom: 20px;
 }
 
 .poolsInfo {
@@ -74,6 +75,9 @@ a {
 }
 
 .blockInfo {
+    width: 25%;
+    display: inline-block;
+    vertical-align: top;
     &__item {
         border: 1px solid;
         padding: 10px;
@@ -87,7 +91,10 @@ a {
 }
 
 .chart {
-    margin: 20px -10px;
+    margin: 20px 0;
+    display: inline-block;
+    width: 75%;
+    vertical-align: top;
     * {
         font-family: Roboto,sans-serif !important;
     }
@@ -103,6 +110,11 @@ a {
     }
 }
 
+.chartBlock {
+    width: 100%;
+    align-items: baseline;
+}
+
 /*
     Dark theme config
 */
@@ -116,4 +128,26 @@ body.dark {
             color: var.$bg-dark;
         }
     }
+}
+
+.container {
+    padding: 0 15px;
+    width: 100%;
+}
+
+.col {
+    display: inline-block;
+    width: 100%;
+    vertical-align: baseline;
+    &-75 {
+        width: 75%;
+    }
+    &-25 {
+        width: 25%;
+    }
+}
+
+.row {
+    margin: 0 -15px;
+    display: flex;
 }
