@@ -136,6 +136,17 @@ function init() {
         }
     });
 
+    /** Change browser state */
+    addEventListener("popstate", (event: any) => {
+        if (event.currentTarget.location.search.includes('txHash')) {
+            $txHashSection.classList.remove('hide');
+            $chartSection.classList.add('hide');
+        } else if (event.currentTarget.location.search.includes('poolAddress')) {
+            $txHashSection.classList.add('hide');
+            $chartSection.classList.remove('hide');
+        }
+    });
+
     async function generateHash(query: IHashRequest): Promise<void> {
         let error = $txHashSection.querySelector(".js-form-error");
         error.classList.add('hide');
