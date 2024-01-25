@@ -141,13 +141,13 @@ function init() {
         error.classList.add('hide');
         try {
             const response: IHashResponse = await baseGETRequest(`http://g.cybara.io/detect?txHash=${query.txHash}`);
-            // if (response.pools.length === 1) {
-            //     generateChart({
-            //         poolAddress: response.pools[0].Address,
-            //         startingBlock: String(response.block),
-            //         blocks: '100'
-            //     })
-            // } else {
+            if (response.pools.length === 1) {
+                generateChart({
+                    poolAddress: response.pools[0].Address,
+                    startingBlock: String(response.block),
+                    blocks: '100'
+                })
+            } else {
                 hashResult = response;
                 let poolsHTML = "";
                 response.pools.forEach((val: IPool, i: number) => {
@@ -155,7 +155,7 @@ function init() {
                 });
                 $poolsByHash.innerHTML = poolsHTML;
                 setValuesToURL(query);
-            //}
+            }
         } catch (e) {
             error.classList.remove('hide');
             error.innerHTML = e.error;
