@@ -1,32 +1,58 @@
-import { IChartRequest, IChartResponse, ICandle, IPrice, IBlock, IValidationError } from "./dto";
+import {ICandle, IChartRequest, IChartResponse, IHashRequest, IPrice, IValidationError, IHashResponse, IPool} from "./dto";
 import ApexCharts from 'apexcharts'
+
 require('../css/app.scss');
 
-function init() { 
+function init() {
 
     /** Elements */
-    const $form = document.getElementById("js-form");
-    const $poolAddress = <HTMLInputElement> document.getElementById("js-poolAddress");
-    const $startingBlock = <HTMLInputElement> document.getElementById("js-startingBlock");
-    const $blocks = <HTMLInputElement> document.getElementById("js-blocks");
-    const $formError = document.getElementById("js-form-error");
-    const $chart = document.getElementById('js-chart');
-    const $poolInfo = document.getElementById('js-poolInfo');
-    const $blockInfo = document.getElementById('js-blockInfo');
-    const $loader = document.getElementById('js-loader');
+    const $chartForm = document.getElementById("js-ChartForm");
+    const $txHashForm = document.getElementById("txHashForm");
+
+    const $txHashSection = document.getElementById("txHashSection");
+    const $chartSection = document.getElementById("chartSection");
+
+    const $poolsByHash = document.getElementById("poolsByHash");
+
+    const $poolAddressInput = <HTMLInputElement>document.getElementById("poolAddress");
+    const $startingBlockInput = <HTMLInputElement>document.getElementById("startingBlock");
+    const $blocksInput = <HTMLInputElement>document.getElementById("blocks");
+    const $txHashInput = <HTMLInputElement>document.getElementById("txHash");
+
+    const $chart = document.getElementById("js-chart");
+    const $poolInfo = document.getElementById("js-poolInfo");
+    const $blockInfo = document.getElementById("js-blockInfo");
+    const $loader = document.getElementById("loader");
+    const $error = document.getElementById("error");
 
     /** Check get params */
     const queryString = location.search.substring(1);
     if (queryString.length) {
-        let URLParse = JSON.parse('{"' + decodeURI(queryString).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g,'":"') + '"}');
+        let URLParse = JSON.parse('{"' + decodeURI(queryString).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g, '":"') + '"}');
         if (URLParse.poolAddress && URLParse.startingBlock && URLParse.blocks) {
             let query = {
                 poolAddress: URLParse.poolAddress,
                 startingBlock: URLParse.startingBlock,
                 blocks: URLParse.blocks
             };
+            $txHashSection.classList.add('hide');
+            $chartSection.classList.remove('hide');
             generateChart(query);
             setValesToForm(query);
+            $poolAddressInput.value = query.poolAddress;
+            $startingBlockInput.value = query.startingBlock;
+            $blocksInput.value = query.blocks;
+        } else if (URLParse.txHash) {
+            let query = {
+                txHash: URLParse.txHash
+            };
+            $txHashSection.classList.remove('hide');
+            $chartSection.classList.add('hide');
+            generateHash(query);
+            $txHashInput.value = query.txHash;
+        } else {
+            $txHashSection.classList.remove('hide');
+            $chartSection.classList.add('hide');
         }
     }
 
@@ -40,16 +66,16 @@ function init() {
             height: 500,
             events: {
                 //@ts-ignore
-                markerClick: function(_: any, {w}, { seriesIndex, dataPointIndex}) {
+                markerClick: function (_: any, {w}, {seriesIndex, dataPointIndex}) {
                     $blockInfo.innerHTML = '';
                     let candle = w.config.series[seriesIndex].data[dataPointIndex];
                     let blocksHTML = '';
                     candle.prices.forEach((val: IPrice) => {
                         blocksHTML += `<div class="blockInfo__item">${formatJSONtoHTML(val)}</div>`;
                     })
-                    $blockInfo.innerHTML = blocksHTML;                          
+                    $blockInfo.innerHTML = blocksHTML;
                 }
-              }
+            }
         },
         title: {
             text: 'PP Chart',
@@ -65,40 +91,42 @@ function init() {
         },
         tooltip: {
             //@ts-ignore
-            custom: function({series, seriesIndex, dataPointIndex, w}) {
+            custom: function ({series, seriesIndex, dataPointIndex, w}) {
                 let block = w.config.series[seriesIndex].data[dataPointIndex];
-                
+
                 return '<div class="chart__tooltip">' +
-                  '<strong>Open:</strong><span>' + block.y[0] + '</span></br>' +
-                  '<strong>High:</strong><span>' + block.y[1] + '</span></br>' +
-                  '<strong>Low:</strong><span>' + block.y[2] + '</span></br>' +
-                  '<strong>Close:</strong><span>' + block.y[3] + '</span></br>' +
-                  '</div>'
-              }
+                    '<strong>Open:</strong><span>' + block.y[0] + '</span></br>' +
+                    '<strong>High:</strong><span>' + block.y[1] + '</span></br>' +
+                    '<strong>Low:</strong><span>' + block.y[2] + '</span></br>' +
+                    '<strong>Close:</strong><span>' + block.y[3] + '</span></br>' +
+                    '</div>'
+            }
         }
     }
-    
     const chart = new ApexCharts($chart, chartOptions);
     chart.render();
-    
 
-    /** Submit form */
-    $form.addEventListener("submit", async (event: SubmitEvent) => {
-        event.preventDefault();   
-        const target = <HTMLFormElement> event.currentTarget;        
-        const formData = new FormData(target);
+    /** Submit chart form */
+    $chartForm.addEventListener("submit", async (event: SubmitEvent) => {
+        event.preventDefault();
+        generateChart({
+            poolAddress: $poolAddressInput.value,
+            startingBlock: $startingBlockInput.value,
+            blocks: $blocksInput.value
+        });
+    });
+
+    /** Submit txHash form */
+    $txHashForm.addEventListener("submit", async (event: SubmitEvent) => {
+        event.preventDefault();
         const query = {
-            poolAddress: formData.get('poolAddress') as string,
-            startingBlock: formData.get('startingBlock') as string,
-            blocks: formData.get('blocks') as string
+            txHash: $txHashInput.value
         }
-        generateChart(query); 
+        generateHash(query);
     });
 
     function setValesToForm(query: IChartRequest): void {
-        $poolAddress.value = query.poolAddress;
-        $startingBlock.value = query.startingBlock;
-        $blocks.value = query.blocks;
+
     }
 
     function setValuesToURL(query: IChartRequest): void {
@@ -109,29 +137,48 @@ function init() {
         history.pushState({}, "", url);
     }
 
-    async function generateChart(query: IChartRequest): Promise<void> {
+    async function generateHash(query: IHashRequest): Promise<void> {
+        let error = $txHashSection.querySelector(".js-form-error");
+        error.classList.add('hide');
         try {
-            const response: IChartResponse = await requestChartData(query);
+            const response: IHashResponse = await baseGETRequest(`http://g.cybara.io/detect?txHash=${query.txHash}`);
+            console.log('res', response);
+            if (response.pools.length === 1) {
+                // TODO: запрашиваем chart
+            } else {
+                let poolsHTML = "";
+                response.pools.forEach((val: IPool) => {
+                   poolsHTML += `<div class="poolsInfo__item">${formatJSONtoHTML(val)}</div>`;
+                });
+                $poolsByHash.innerHTML = poolsHTML;
+            }
+        } catch (e) {
+            error.classList.remove('hide');
+            error.innerHTML = e.error;
+        }
+    }
+
+    async function generateChart(query: IChartRequest): Promise<void> {
+        let error = $chartForm.querySelector(".js-form-error");
+        error.classList.add('hide');
+        try {
+            const response: IChartResponse = await baseGETRequest(`http://g.cybara.io/api?poolAddress=${query.poolAddress}&startingBlock=${query.startingBlock}&blocks=${query.blocks}`);
             const data = formatChartData(response);
-            $poolInfo.innerHTML = formatJSONtoHTML(response.poolInfo); 
-            $chart.style.display = "block"; 
+            $poolInfo.innerHTML = formatJSONtoHTML(response.poolInfo);
+            $chart.style.display = "block";
             chart.updateSeries([{
                 data
             }]);
             setValuesToURL(query);
-        } catch (error) {
-            $formError.innerText = error.error;
+        } catch (e) {
+            error.classList.remove('hide');
+            error.innerHTML = e.error;
         }
     }
-    async function requestChartData(query: IChartRequest): Promise<IChartResponse>  {
-        let validation = validateRequest(query);
-        if (!validation.success) {
-            throw validation;
-        }
+
+    async function baseGETRequest(url: string): Promise<any> {
         beforeRequest();
-        const baseUrl = `http://g.cybara.io/api`;
-        const search = `?poolAddress=${query.poolAddress}&startingBlock=${query.startingBlock}&blocks=${query.blocks}`;
-        const response = await fetch(`${baseUrl}${search}`, {
+        const response = await fetch(url, {
             method: 'GET',
         });
         const json = await response.json();
@@ -142,57 +189,57 @@ function init() {
             throw json
         }
     }
-    
+
     function formatChartData(data: IChartResponse): ICandle[] {
-      let formatData: ICandle[] = [];
-      let loopLength: number = data.blocks[data.blocks.length - 1].blockNumber - data.blocks[0].blockNumber;
-      let lastBlockNumber: number = data.blocks[0].blockNumber - 1;
-      let lastOpen: string = data.poolInfo.startingPrice;
-      let lastHigh: string = '';
-      let lastLow: string = '';
-      let lastClose: string = data.poolInfo.startingPrice;
-    
-      let i = 0;
-      while(formatData.length - 1 !== loopLength) {
-        lastBlockNumber++;
-        let prices: IPrice[] = [];
-        if (data.blocks[i].blockNumber === lastBlockNumber) {
-            let high: number = 0,
-                low: number = Infinity;
+        let formatData: ICandle[] = [];
+        let loopLength: number = data.blocks[data.blocks.length - 1].blockNumber - data.blocks[0].blockNumber;
+        let lastBlockNumber: number = data.blocks[0].blockNumber - 1;
+        let lastOpen: string = data.poolInfo.startingPrice;
+        let lastHigh: string = '';
+        let lastLow: string = '';
+        let lastClose: string = data.poolInfo.startingPrice;
+
+        let i = 0;
+        while (formatData.length - 1 !== loopLength) {
+            lastBlockNumber++;
+            let prices: IPrice[] = [];
+            if (data.blocks[i].blockNumber === lastBlockNumber) {
+                let high: number = 0,
+                    low: number = Infinity;
                 lastOpen = lastClose;
-            data.blocks[i].prices.forEach((price: IPrice, k: number): void => {
-                if (+price.priceAfter > high) {
-                    lastHigh = price.priceAfter
-                    high = +price.priceAfter;
-                }
-                if (+price.priceAfter < low) {
-                    lastLow = price.priceAfter
-                    low = +price.priceAfter;
-                }
-                if (k === data.blocks[i].prices.length - 1) {
-                    lastClose = price.priceAfter;
-                }
-                prices.push({
-                    ...price
-                })
-            });
-            i++;
-            formatData.push({
-                x: lastBlockNumber + '',
-                y: [lastOpen, lastHigh, lastLow, lastClose],
-                prices
-            });
-        } else {
-            formatData.push({
-                x: lastBlockNumber + '',
-                y: [lastClose, lastClose, lastClose, lastClose],
-                prices
-            });
+                data.blocks[i].prices.forEach((price: IPrice, k: number): void => {
+                    if (+price.priceAfter > high) {
+                        lastHigh = price.priceAfter
+                        high = +price.priceAfter;
+                    }
+                    if (+price.priceAfter < low) {
+                        lastLow = price.priceAfter
+                        low = +price.priceAfter;
+                    }
+                    if (k === data.blocks[i].prices.length - 1) {
+                        lastClose = price.priceAfter;
+                    }
+                    prices.push({
+                        ...price
+                    })
+                });
+                i++;
+                formatData.push({
+                    x: lastBlockNumber + '',
+                    y: [lastOpen, lastHigh, lastLow, lastClose],
+                    prices
+                });
+            } else {
+                formatData.push({
+                    x: lastBlockNumber + '',
+                    y: [lastClose, lastClose, lastClose, lastClose],
+                    prices
+                });
+            }
         }
-      }
-      return formatData;
+        return formatData;
     }
-    
+
     function formatJSONtoHTML(json: any): string {
         let html = '';
         for (let key in json) {
@@ -221,38 +268,15 @@ function init() {
 
     function beforeRequest(): void {
         $loader.classList.remove('hide');
-        $formError.classList.add('hide');
-        $form.classList.add('disabled');
+        $chartForm.classList.add('disabled');
+        $txHashForm.classList.add('disabled');
     }
 
     function afterRequest(): void {
         $loader.classList.add('hide');
-        $form.classList.remove('disabled');
+        $chartForm.classList.remove('disabled');
+        $txHashForm.classList.remove('disabled');
         $poolInfo.classList.remove('hide');
-    }
-
-    function validateRequest(query: IChartRequest): IValidationError {
-        if (!/^0x\w{40}/.test(query.poolAddress)) {
-            return {
-                success: false,
-                error: 'Invalid value poolAddress. Only hash string allowed: starts from 0x and length 42.'
-            }
-        } else if (!/\d/gm.test(query.startingBlock)) {
-            return {
-                success: false,
-                error: 'Invalid value startingBlock. Only numbers allowed.'
-            }
-        } else if (!/\d/gm.test(query.blocks)) {
-            return {
-                success: false,
-                error: 'Invalid value blocks. Only numbers allowed.'
-            }
-        } else {
-            return {
-                success: true,
-                error: ''
-            }
-        }
     }
 }
 

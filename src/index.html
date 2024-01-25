@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-  <head itemscope itemtype="http://schema.org/WebSite">
+<head itemscope itemtype="http://schema.org/WebSite">
 
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
@@ -43,72 +43,79 @@
     <link type="text/plain" rel="author" href="humans.txt">
     <link rel="stylesheet" href="main.css">
 
-    <!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+    <!--[if IE]>
+    <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
 
-  </head>
-  <body itemscope itemtype="http://schema.org/WebPage" class="dark">
-    <h1>ppdev</h1>
-    <section>
-
-      <form action="#" class="form" id="js-form">
+</head>
+<body itemscope itemtype="http://schema.org/WebPage" class="dark">
+<h1>ppdev</h1>
+<section id="txHashSection">
+    <form action="#" class="form" id="txHashForm">
         <div class="form__field">
-          <label for="poolAddress" class="form__label">poolAddress</label>
-          <input type="text" name="poolAddress" class="form__input" id="js-poolAddress" required/>
-        </div>
-        <div class="form__field">
-          <label for="startingBlock" class="form__label">startingBlock</label>
-          <input type="text" name="startingBlock" class="form__input" id="js-startingBlock" required/>
-        </div>
-        <div class="form__field">
-          <label for="blocks" class="form__label">blocks</label>
-          <input type="text" name="blocks" class="form__input" label="blocks" id="js-blocks" required/>
+            <label for="txHash" class="form__label">txHash</label>
+            <input type="text" name="txHash" class="form__input" id="txHash" required/>
         </div>
         <input type="submit" class="form__submit">
+        <div class="form__error js-form-error"></div>
+    </form>
+    <div class="poolsInfo" id="poolsByHash"></div>
+</section>
+<section id="chartSection" class="hide">
+    <form action="#" class="form" id="js-ChartForm">
+        <div class="form__field">
+            <label for="poolAddress" class="form__label">poolAddress</label>
+            <input type="text" name="poolAddress" class="form__input" id="poolAddress" required/>
+        </div>
+        <div class="form__field">
+            <label for="startingBlock" class="form__label">startingBlock</label>
+            <input type="text" name="startingBlock" class="form__input" id="startingBlock" required/>
+        </div>
+        <div class="form__field">
+            <label for="blocks" class="form__label">blocks</label>
+            <input type="text" name="blocks" class="form__input" id="blocks" required/>
+        </div>
+        <input type="submit" class="form__submit js-form-error">
+        <div class="form__error"></div>
+    </form>
 
-        <div class="form__error" id="js-form-error"></div>
-      </form>
-
-      <div class="poolInfo hide" id="js-poolInfo"></div>
-      <div class="chart hide" id="js-chart"></div>
-      <div class="blockInfo" id="js-blockInfo"></div>
-
-      <div class="loader hide" id="js-loader">
-        <svg width="120" height="30" viewBox="0 0 120 30" xmlns="http://www.w3.org/2000/svg" fill="#fff">
-          <circle cx="15" cy="15" r="15">
-              <animate attributeName="r" from="15" to="15"
-                       begin="0s" dur="0.8s"
-                       values="15;9;15" calcMode="linear"
-                       repeatCount="indefinite" />
-              <animate attributeName="fill-opacity" from="1" to="1"
-                       begin="0s" dur="0.8s"
-                       values="1;.5;1" calcMode="linear"
-                       repeatCount="indefinite" />
-          </circle>
-          <circle cx="60" cy="15" r="9" fill-opacity="0.3">
-              <animate attributeName="r" from="9" to="9"
-                       begin="0s" dur="0.8s"
-                       values="9;15;9" calcMode="linear"
-                       repeatCount="indefinite" />
-              <animate attributeName="fill-opacity" from="0.5" to="0.5"
-                       begin="0s" dur="0.8s"
-                       values=".5;1;.5" calcMode="linear"
-                       repeatCount="indefinite" />
-          </circle>
-          <circle cx="105" cy="15" r="15">
-              <animate attributeName="r" from="15" to="15"
-                       begin="0s" dur="0.8s"
-                       values="15;9;15" calcMode="linear"
-                       repeatCount="indefinite" />
-              <animate attributeName="fill-opacity" from="1" to="1"
-                       begin="0s" dur="0.8s"
-                       values="1;.5;1" calcMode="linear"
-                       repeatCount="indefinite" />
-          </circle>
-      </svg>
-      </div>
-
-    </section>
-  </div>
-  <script type="text/javascript" src="../build/app.js"></script>
-  </body>
+    <div class="poolInfo hide" id="js-poolInfo"></div>
+    <div class="chart hide" id="js-chart"></div>
+    <div class="blockInfo" id="js-blockInfo"></div>
+</section>
+<div class="loader hide" id="loader">
+    <svg width="120" height="30" viewBox="0 0 120 30" xmlns="http://www.w3.org/2000/svg" fill="#fff">
+        <circle cx="15" cy="15" r="15">
+            <animate attributeName="r" from="15" to="15"
+                     begin="0s" dur="0.8s"
+                     values="15;9;15" calcMode="linear"
+                     repeatCount="indefinite"/>
+            <animate attributeName="fill-opacity" from="1" to="1"
+                     begin="0s" dur="0.8s"
+                     values="1;.5;1" calcMode="linear"
+                     repeatCount="indefinite"/>
+        </circle>
+        <circle cx="60" cy="15" r="9" fill-opacity="0.3">
+            <animate attributeName="r" from="9" to="9"
+                     begin="0s" dur="0.8s"
+                     values="9;15;9" calcMode="linear"
+                     repeatCount="indefinite"/>
+            <animate attributeName="fill-opacity" from="0.5" to="0.5"
+                     begin="0s" dur="0.8s"
+                     values=".5;1;.5" calcMode="linear"
+                     repeatCount="indefinite"/>
+        </circle>
+        <circle cx="105" cy="15" r="15">
+            <animate attributeName="r" from="15" to="15"
+                     begin="0s" dur="0.8s"
+                     values="15;9;15" calcMode="linear"
+                     repeatCount="indefinite"/>
+            <animate attributeName="fill-opacity" from="1" to="1"
+                     begin="0s" dur="0.8s"
+                     values="1;.5;1" calcMode="linear"
+                     repeatCount="indefinite"/>
+        </circle>
+    </svg>
+</div>
+<script type="text/javascript" src="../build/app.js"></script>
+</body>
 </html>

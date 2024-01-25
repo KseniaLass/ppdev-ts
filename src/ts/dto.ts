@@ -28,6 +28,15 @@ interface ICandle {
     prices: IPrice[]
 }
 
+interface IPool {
+    Address: string,
+    Name: string,
+    Token0: string,
+    Token1: string,
+    Liquidity0: string,
+    Liquidity1: string
+}
+
 interface IChartResponse {
     success: Boolean
     error: string;
@@ -41,9 +50,21 @@ interface IChartRequest {
     blocks: string;
 }
 
+interface IHashRequest {
+    txHash: string;
+}
+
+interface IHashResponse {
+    success: Boolean
+    error: string;
+    txHash: string;
+    pools: IPool[];
+    block: number;
+}
+
 interface IValidationError {
     success: boolean;
     error: string;
 }
 
-export {IChartResponse, IChartRequest, ICandle, IPrice, IBlock, IValidationError}
+export {IChartResponse, IChartRequest, ICandle, IPrice, IBlock, IValidationError, IHashRequest, IHashResponse, IPool}
