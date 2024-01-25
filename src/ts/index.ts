@@ -23,7 +23,9 @@ function init() {
     const $poolInfo = document.getElementById("js-poolInfo");
     const $blockInfo = document.getElementById("js-blockInfo");
     const $loader = document.getElementById("loader");
-    const $error = document.getElementById("error");
+
+    /** Data */
+    let hashResult = <IHashResponse> null;
 
     /** Check get params */
     const queryString = location.search.substring(1);
@@ -38,10 +40,6 @@ function init() {
             $txHashSection.classList.add('hide');
             $chartSection.classList.remove('hide');
             generateChart(query);
-            setValesToForm(query);
-            $poolAddressInput.value = query.poolAddress;
-            $startingBlockInput.value = query.startingBlock;
-            $blocksInput.value = query.blocks;
         } else if (URLParse.txHash) {
             let query = {
                 txHash: URLParse.txHash
@@ -125,33 +123,39 @@ function init() {
         generateHash(query);
     });
 
-    function setValesToForm(query: IChartRequest): void {
-
-    }
-
-    function setValuesToURL(query: IChartRequest): void {
-        const url = new URL(`${window.location.origin}${window.location.pathname}`);
-        url.searchParams.set('poolAddress', query.poolAddress);
-        url.searchParams.set('startingBlock', query.startingBlock);
-        url.searchParams.set('blocks', query.blocks);
-        history.pushState({}, "", url);
-    }
+    /** Click on pool item */
+    document.addEventListener("click", function(e){
+        let target = <Element> e.target;
+        if (target.closest('.js-pools-item')) {
+            const i = +target.getAttribute("data-index");
+            generateChart({
+                poolAddress: hashResult.pools[i].Address,
+                startingBlock: String(hashResult.block),
+                blocks: '100'
+            });
+        }
+    });
 
     async function generateHash(query: IHashRequest): Promise<void> {
         let error = $txHashSection.querySelector(".js-form-error");
         error.classList.add('hide');
         try {
             const response: IHashResponse = await baseGETRequest(`http://g.cybara.io/detect?txHash=${query.txHash}`);
-            console.log('res', response);
-            if (response.pools.length === 1) {
-                // TODO: запрашиваем chart
-            } else {
+            // if (response.pools.length === 1) {
+            //     generateChart({
+            //         poolAddress: response.pools[0].Address,
+            //         startingBlock: String(response.block),
+            //         blocks: '100'
+            //     })
+            // } else {
+                hashResult = response;
                 let poolsHTML = "";
-                response.pools.forEach((val: IPool) => {
-                   poolsHTML += `<div class="poolsInfo__item">${formatJSONtoHTML(val)}</div>`;
+                response.pools.forEach((val: IPool, i: number) => {
+                   poolsHTML += `<div class="poolsInfo__item js-pools-item" data-index="${i}">${formatJSONtoHTML(val)}</div>`;
                 });
                 $poolsByHash.innerHTML = poolsHTML;
-            }
+                setValuesToURL(query);
+            //}
         } catch (e) {
             error.classList.remove('hide');
             error.innerHTML = e.error;
@@ -164,8 +168,10 @@ function init() {
         try {
             const response: IChartResponse = await baseGETRequest(`http://g.cybara.io/api?poolAddress=${query.poolAddress}&startingBlock=${query.startingBlock}&blocks=${query.blocks}`);
             const data = formatChartData(response);
+            setValesToForm(query);
             $poolInfo.innerHTML = formatJSONtoHTML(response.poolInfo);
-            $chart.style.display = "block";
+            $txHashSection.classList.add('hide');
+            $chartSection.classList.remove('hide');
             chart.updateSeries([{
                 data
             }]);
@@ -188,6 +194,20 @@ function init() {
         } else {
             throw json
         }
+    }
+
+    function setValesToForm(query: IChartRequest): void {
+        $poolAddressInput.value = query.poolAddress;
+        $startingBlockInput.value = query.startingBlock;
+        $blocksInput.value = query.blocks;
+    }
+
+    function setValuesToURL(query: any): void {
+        const url = new URL(`${window.location.origin}${window.location.pathname}`);
+        for (let key in query) {
+            url.searchParams.set(key, query[key]);
+        }
+        history.pushState({}, "", url);
     }
 
     function formatChartData(data: IChartResponse): ICandle[] {
