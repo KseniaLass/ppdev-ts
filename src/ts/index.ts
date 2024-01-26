@@ -148,7 +148,7 @@ function init() {
     });
 
     async function generateHash(query: IHashRequest): Promise<void> {
-        let error = $txHashSection.querySelector(".js-form-error");
+        let error = $txHashForm.querySelector(".js-form-error");
         error.classList.add('hide');
         try {
             const response: IHashResponse = await baseGETRequest(`http://g.cybara.io/detect?txHash=${query.txHash}`);

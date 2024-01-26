@@ -11,22 +11,20 @@ a {
         color: var.$linkhover;
     }
 }
+h1 {
+    margin-bottom: 10px;
+}
 
 .form {
     margin-bottom: 20px;
+    padding: 15px;
     &.disabled {
         opacity: 0.5;
         pointer-events: none;
     }
     &__field {
-        padding: 5px;
         display: inline-block;
-        &:first-child {
-            input {
-                min-width: 420px;
-            }
-        }
-
+        margin-right: 10px;
     }
     &__input {
         height: auto;
@@ -45,7 +43,7 @@ a {
         padding: 0 20px;
     }
     &__error {
-        margin: 20px 0;
+        margin: 15px 0 0;
         color: var.$error;
     }
 }
@@ -113,6 +111,15 @@ a {
 .chartBlock {
     width: 100%;
     align-items: baseline;
+}
+.formSection {
+    display: flex;
+    .form {
+        border: 1px solid;
+        &:first-child {
+            margin-right: 15px;
+        }
+    }
 }
 
 /*

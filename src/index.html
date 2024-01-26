@@ -48,7 +48,7 @@
 </head>
 <body itemscope itemtype="http://schema.org/WebPage" class="dark">
 <h1>ppdev</h1>
-<section id="txHashSection">
+<div class="formSection">
     <form action="#" class="form" id="txHashForm">
         <div class="form__field">
             <label for="txHash" class="form__label">txHash</label>
@@ -57,9 +57,6 @@
         <input type="submit" class="form__submit">
         <div class="form__error js-form-error"></div>
     </form>
-    <div class="poolsInfo" id="poolsByHash"></div>
-</section>
-<section id="chartSection" class="hide">
     <form action="#" class="form" id="js-ChartForm">
         <div class="form__field">
             <label for="poolAddress" class="form__label">poolAddress</label>
@@ -76,7 +73,11 @@
         <input type="submit" class="form__submit js-form-error">
         <div class="form__error"></div>
     </form>
-
+</div>
+<section id="txHashSection">
+    <div class="poolsInfo" id="poolsByHash"></div>
+</section>
+<section id="chartSection" class="hide">
     <div class="poolInfo" id="js-poolInfo"></div>
     <div class="container">
         <div class="row">
