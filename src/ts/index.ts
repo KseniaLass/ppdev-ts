@@ -6,8 +6,8 @@ require('../css/app.scss');
 function init() {
 
     /** Elements */
-    const $chartForm = document.getElementById("js-ChartForm");
-    const $txHashForm = document.getElementById("txHashForm");
+    const $chartForm = <HTMLFormElement> document.getElementById("js-ChartForm");
+    const $txHashForm = <HTMLFormElement> document.getElementById("txHashForm");
 
     const $txHashSection = document.getElementById("txHashSection");
     const $chartSection = document.getElementById("chartSection");
@@ -123,35 +123,14 @@ function init() {
         generateHash(query);
     });
 
-    /** Click on pool item */
-    document.addEventListener("click", function(e){
-        let target = <Element> e.target;
-        if (target.closest('.js-pools-item')) {
-            const i = +target.getAttribute("data-index");
-            generateChart({
-                poolAddress: hashResult.pools[i].Address,
-                startingBlock: String(hashResult.block),
-                blocks: '100'
-            });
-        }
-    });
-
-    /** Change browser state */
-    addEventListener("popstate", (event: any) => {
-        if (event.currentTarget.location.search.includes('txHash')) {
-            $txHashSection.classList.remove('hide');
-            $chartSection.classList.add('hide');
-        } else if (event.currentTarget.location.search.includes('poolAddress')) {
-            $txHashSection.classList.add('hide');
-            $chartSection.classList.remove('hide');
-        }
-    });
-
     async function generateHash(query: IHashRequest): Promise<void> {
         let error = $txHashForm.querySelector(".js-form-error");
-        error.classList.add('hide');
+        error.innerHTML = '';
         try {
             const response: IHashResponse = await baseGETRequest(`http://g.cybara.io/detect?txHash=${query.txHash}`);
+            $chartSection.classList.add('hide');
+            $txHashSection.classList.remove('hide');
+            $chartForm.reset();
             if (response.pools.length === 1) {
                 generateChart({
                     poolAddress: response.pools[0].Address,
@@ -162,20 +141,21 @@ function init() {
                 hashResult = response;
                 let poolsHTML = "";
                 response.pools.forEach((val: IPool, i: number) => {
-                   poolsHTML += `<div class="poolsInfo__item js-pools-item" data-index="${i}">${formatJSONtoHTML(val)}</div>`;
+                   poolsHTML += `<a href="${document.location.origin}${document.location.pathname}?poolAddress=${val.Address}&startingBlock=${response.block}&blocks=100">
+                        <div class="poolsInfo__item">${formatJSONtoHTML(val)}</div>
+                   </a>`;
                 });
                 $poolsByHash.innerHTML = poolsHTML;
                 setValuesToURL(query);
             }
         } catch (e) {
-            error.classList.remove('hide');
             error.innerHTML = e.error;
         }
     }
 
     async function generateChart(query: IChartRequest): Promise<void> {
         let error = $chartForm.querySelector(".js-form-error");
-        error.classList.add('hide');
+        error.innerHTML = '';
         try {
             const response: IChartResponse = await baseGETRequest(`http://g.cybara.io/api?poolAddress=${query.poolAddress}&startingBlock=${query.startingBlock}&blocks=${query.blocks}`);
             const data = formatChartData(response);
@@ -183,12 +163,12 @@ function init() {
             $poolInfo.innerHTML = formatJSONtoHTML(response.poolInfo);
             $txHashSection.classList.add('hide');
             $chartSection.classList.remove('hide');
+            $txHashForm.reset();
             chart.updateSeries([{
                 data
             }]);
             setValuesToURL(query);
         } catch (e) {
-            error.classList.remove('hide');
             error.innerHTML = e.error;
         }
     }

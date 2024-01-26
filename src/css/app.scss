@@ -17,7 +17,6 @@ h1 {
 
 .form {
     margin-bottom: 20px;
-    padding: 15px;
     &.disabled {
         opacity: 0.5;
         pointer-events: none;
@@ -45,6 +44,7 @@ h1 {
     &__error {
         margin: 15px 0 0;
         color: var.$error;
+        height: 19px;
     }
 }
 
@@ -115,7 +115,6 @@ h1 {
 .formSection {
     display: flex;
     .form {
-        border: 1px solid;
         &:first-child {
             margin-right: 15px;
         }
