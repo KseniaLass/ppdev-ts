@@ -198,7 +198,7 @@ function init() {
         for (let key in query) {
             url.searchParams.set(key, query[key]);
         }
-        history.pushState({}, "", url);
+        window.history.replaceState(null, null, url);
     }
 
     function formatChartData(data: IChartResponse): ICandle[] {

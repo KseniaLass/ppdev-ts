@@ -24,6 +24,11 @@ h1 {
     &__field {
         display: inline-block;
         margin-right: 10px;
+        &:first-child {
+            input {
+                min-width: 420px;
+            }
+        }
     }
     &__input {
         height: auto;
